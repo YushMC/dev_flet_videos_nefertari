@@ -1,0 +1,6 @@
+nefertari_videos/
+utils/__pycache__/
+input/
+output/
+temp/
+.DS_store
