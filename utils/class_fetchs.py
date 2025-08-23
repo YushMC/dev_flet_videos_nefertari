@@ -1,7 +1,8 @@
 import aiohttp
-#import asyncio
+from utils.class_files import DeleteFile, CheckDirectories
 from abc import ABC, abstractmethod
 import ssl
+
 
 class APIPathsInterface(ABC):
     @abstractmethod
@@ -30,7 +31,7 @@ class Requests(ABC):
        self._ssl_context.verify_mode = ssl.CERT_NONE
        
     @abstractmethod
-    async def sendRequest(self)-> bool:
+    async def sendRequest(self)-> bool | dict:
         pass
 
     @abstractmethod
@@ -54,7 +55,8 @@ class RequestToLogin(Requests):
                         self.__message= self.__response["message"]
                         return True
                     else:
-                        self.__message = f"Error {response.status}: {await response.text()}"
+                        message_response = await response.json()
+                        self.__message = f"Error: {message_response['message']}"
                         return False
             except Exception as e:
                 self.__message = f"ocurrio un error: {e}"
@@ -78,7 +80,8 @@ class ReequestToDownloadVideo(Requests):
         self.__path_to_save= init_paths.temp_video_path
         self.__message = ""
 
-    async def sendRequest(self):
+    async def sendRequest(self) -> dict:
+        if CheckDirectories().checkFilesAndDirectories(self.__url_video): DeleteFile(self.__url_video)
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.get(self.__url_video, ssl=self._ssl_context) as response:
@@ -89,14 +92,12 @@ class ReequestToDownloadVideo(Requests):
                                 if not chunk:
                                     break
                                 f.write(chunk)
-                        self.__message = f"Descarga completada: {self.__path_to_save}"
-                        return True
+                            
+                            return {"success": True, "message": f"Descarga completada"}
                     else:
-                        self.__message = f"Error {response.status} al descargar el video"
-                        return False
+                        return { "success" : False, "message": f"Error {response.status} al descargar el video"}
             except Exception as e:
-                self.__message =  self.__message = f"ocurrio un error: {e}"
-                return False
+                return {"success": False, "message":  f"ocurrio un error: {e}"}
             
     @property
     def message(self):
@@ -109,14 +110,14 @@ class RequestToGetAllVideosToDownload(Requests):
     def __init__(self, user_info, api_path):
         super().__init__()
         self.__api_path= api_path.endpoint("videos")
-        self.__payload= user_info.token
+        self.__token= user_info
         self.__data_from_nefertari = {}
         self.__message = ""
         self.__trips= []
 
     async def sendRequest(self):
         headers = {
-            "Authorization": self.__payload,
+            "Authorization": self.__token,
             "Content-Type": "application/json"
         }
         async with aiohttp.ClientSession() as session:
@@ -143,6 +144,6 @@ class RequestToGetAllVideosToDownload(Requests):
         return self.__trips
 
     def __str__(self) -> str:
-        return f"RequestToLogin(end_point_api= {self.__api_path}, user_data= {self.__payload}, response= {self.__data_from_nefertari}, message= {self.__message})"
+        return f"RequestToLogin(end_point_api= {self.__api_path}, user_data= {self.__token}, response= {self.__data_from_nefertari}, message= {self.__message})"
     
 

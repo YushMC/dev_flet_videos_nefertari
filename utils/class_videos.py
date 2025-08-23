@@ -1,7 +1,6 @@
 
 from moviepy import  * #type: ignore
 import asyncio
-import threading
 from abc import ABC, abstractmethod
 
 

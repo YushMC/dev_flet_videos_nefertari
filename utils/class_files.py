@@ -1,8 +1,13 @@
 import os
+import os
+import subprocess
+import platform
+from PIL import Image
 
 class InitPaths:
     def __init__(self):
         self.__base_path = os.getcwd()
+        self.allpaths= [f"{self.__base_path}/output", f"{self.__base_path}/input",  f"{self.__base_path}/temp"]
         self.__output_path= f"{self.__base_path}/output"
         self.__input_path= f"{self.__base_path}/input"
         self.__temp_path= f"{self.__base_path}/temp"
@@ -63,10 +68,9 @@ class CheckDirectories(InitPaths, MakeDierctory):
         if not os.path.exists(route) : MakeDierctory.make(self, route)
     
     def checkAllDirectories(self):
-        for attr_name in dir(self):
-            if attr_name.endswith('_path') and not attr_name.endswith('_video_path') and not attr_name.endswith('_generate_path'):
-                route= getattr(self, attr_name)
-                self.createDirectories(route)
+        for route in self.allpaths:
+            self.createDirectories(route)
+               
 
     def checkFilesAndDirectories(self, route):
         return os.path.exists(route)
@@ -113,3 +117,40 @@ class FileNames:
 class DeleteFile:
     def __init__(self, file):
         os.remove(file)
+
+class MoveFIles:
+    def moveMp4(self, route, destination):
+        try:
+            if not CheckDirectories().checkFilesAndDirectories(InitPaths().input_path): os.mkdir(InitPaths().input_path)
+            os.remove(destination) if os.path.exists(destination) else os.rename(route, destination)
+            return {"success": True, "message": f"El archvio fue movido correctamente"}
+        except Exception as e:
+            return {"success": False, "message": e}
+
+    def moveImg(self, route):
+        try:
+            img = Image.open(route)
+            img.save(InitPaths().logo_path, "WEBP")
+            return {"success": True, "message": f"El archvio fue convertido y movido correctamente"}
+        except Exception as e:
+            return {"success": False, "message": e}
+        
+class ShowFiles:
+    def showInputFiles(self):
+        sistema = platform.system()
+        if sistema == "Windows":
+            os.system(f'start "" "{InitPaths().input_path}"')
+            return True
+        else:  # MacOS
+            subprocess.run(["open", InitPaths().input_path])
+            return False
+        
+    def showOutputFiles(self):
+        sistema = platform.system()
+        if sistema == "Windows":
+            os.system(f'start "" "{InitPaths().output_path}"')
+            return True
+        else:  # MacOS
+            subprocess.run(["open", InitPaths().output_path])
+            return False
+        

@@ -24,8 +24,3 @@ class UserDataToLogin:
     def __str__(self):
         return f"UserDataToLogin(email= {self.email}, pass= {self.password})"
 
-
-usuario = UserDataToLogin("juan", "121212")
-
-
-print(usuario.email)
