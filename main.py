@@ -23,8 +23,8 @@ async def crearVideos(files_paths):
 
 async def checkInit(files_paths, check):
     #if not check.checkFilesAndDirectories(files_paths.temp_video_path): await downloadVideo("https://nefertari.s3.us-east-2.amazonaws.com/videos/viaje.mp4", files_paths)
-
     if check.checkFilesAndDirectories(files_paths.generate_temp_video_path): DeleteFile(files_paths.generate_temp_video_path)
+    if check.checkFilesAndDirectories(files_paths.temp_video_path): DeleteFile(files_paths.temp_video_path)
 
 async def main(page: ft.Page):
     check = CheckDirectories()

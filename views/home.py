@@ -10,14 +10,15 @@ class HomeView(AllViews):
         self.__page= page
         self.__username = ft.TextField(label="Usuario", width=300)
         self.__password = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=300)
+        self.__token= ""
 
     async def __login(self)-> dict:
         login = RequestToLogin(UserDataToLogin(self.__username.value,  self.__password.value), APIPaths())
         return { "success" : True, "message" : login.message, "token": login.token}  if await login.sendRequest() else { "success" : False, "message" : login.message}
     
-    async def __getVideos(self, token):
-        videos_to_download_page = DownloadVideoView(self.__page)
-        await videos_to_download_page.getAllVideos(token, APIPaths())
+    async def __getVideos(self):
+        videos_to_download_page = DownloadVideoView(self.__page,self.__token )
+        await videos_to_download_page.getAllVideos(APIPaths())
         self.__page.views.clear()
         self.__page.views.append(await videos_to_download_page.get_view())
         self.__page.go("/get-videos")
@@ -34,10 +35,11 @@ class HomeView(AllViews):
         async def login_click(e):
             response = await self.__login()
             if response["success"]:
+                self.__token = response["token"]
                 self.__page.update()
                 dlg.title = ft.Text(response["message"])
                 dlg.icon = ft.Icon(ft.Icons.CHECK, color=ft.Colors.GREEN, size=50)
-                dlg.on_dismiss= await self.__getVideos(response["token"])
+                dlg.on_dismiss= await self.__getVideos()
                 self.__page.open(dlg)
             else:
                 self.__page.update()

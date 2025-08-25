@@ -6,12 +6,10 @@ from views.base import AllViews
 class LoadFiles(AllViews):
     def __init__(self, page: ft.Page):
         self.__page= page
-       
-        self.__file_picker_1 = ft.FilePicker(on_result=self.on_file_selected)
-        self.__file_picker_2 = ft.FilePicker(on_result=self.on_file_selected)
-        self.__file_picker_3 = ft.FilePicker(on_result=self.on_file_selected)
+        self.__active_text_field = None
+        self.__file_picker = ft.FilePicker(on_result=self.__on_file_selected)
+        self.__page.overlay.append(self.__file_picker)
 
-        print("FilePickers inicializados en la vista:", self.__file_picker_1, self.__file_picker_2, self.__file_picker_3)
         """ 
         self.__file_picker_1.dialog_title = "intro"
         self.__file_picker_2.dialog_title = "outro"
@@ -25,29 +23,22 @@ class LoadFiles(AllViews):
         self.__outro_video = ft.TextField(label="Video de despedida", width=600)
         self.__agency_logo = ft.TextField(label="Logo de la agencia", width=600)
         """
-
-        self.__page.overlay.append(self.__file_picker_1)
-        self.__page.overlay.append(self.__file_picker_2)
-        self.__page.overlay.append(self.__file_picker_3)
-        print("Pagina en la vista:", self.__page)
         self.__intro_video = ft.TextField(label="Video de introduccción", width=600)
         self.__outro_video = ft.TextField(label="Video de despedida", width=600)
         self.__agency_logo = ft.TextField(label="Logo de la agencia", width=600)
 
-    def on_file_selected(self, e: ft.FilePickerResultEvent):
-        print(f"on_file_selected llamado desde: {e.control.dialog_title}")
-        if e.files:
-            file_path = e.files[0].path
-            print(f"Archivo seleccionado: {file_path}")
-
-            if e.control.dialog_title == "intro":
-                self.__intro_video.value = file_path
-            elif e.control.dialog_title == "outro":
-                self.__outro_video.value = file_path
-            elif e.control.dialog_title == "logo":
-                self.__agency_logo.value = file_path
-
+    def __on_file_selected(self, e: ft.FilePickerResultEvent):
+        if e.files and self.__active_text_field:
+            self.__active_text_field.value = e.files[0].path
             self.__page.update()
+            self.__active_text_field = None
+
+    def __pick_file(self, text_field, file_type):
+        self.__active_text_field = text_field
+        self.__file_picker.pick_files(
+            allow_multiple=False,
+            file_type=file_type
+        )
 
     def __moveFiles(self):
         check= CheckDirectories()
@@ -106,9 +97,27 @@ class LoadFiles(AllViews):
             content=ft.Column(
                 [
                     ft.Text("Cargar archivos", size=25, weight="bold"), #type: ignore
-                    ft.Row([self.__intro_video, ft.ElevatedButton("Seleccionar archivo", on_click=lambda _:(print("Botón Intro presionado"), self.__file_picker_1.pick_files(allow_multiple=False, file_type=ft.FilePickerFileType.VIDEO)))]),
-                    ft.Row([self.__outro_video, ft.ElevatedButton("Seleccionar archivo", on_click=lambda _: (print("Botón Outro presionado"), self.__file_picker_2.pick_files(allow_multiple=False, file_type=ft.FilePickerFileType.VIDEO)))]),
-                    ft.Row([self.__agency_logo, ft.ElevatedButton("Seleccionar archivo", on_click=lambda _: (print("Botón Logo presionado"), self.__file_picker_3.pick_files(allow_multiple=False, file_type=ft.FilePickerFileType.IMAGE)))]),
+                    ft.Row([
+                        self.__intro_video,
+                        ft.ElevatedButton(
+                            "Seleccionar archivo",
+                            on_click=lambda _: self.__pick_file(self.__intro_video, ft.FilePickerFileType.VIDEO)
+                        )
+                    ]),
+                    ft.Row([
+                        self.__outro_video,
+                        ft.ElevatedButton(
+                            "Seleccionar archivo",
+                            on_click=lambda _: self.__pick_file(self.__outro_video, ft.FilePickerFileType.VIDEO)
+                        )
+                    ]),
+                    ft.Row([
+                        self.__agency_logo,
+                        ft.ElevatedButton(
+                            "Seleccionar archivo",
+                            on_click=lambda _: self.__pick_file(self.__agency_logo, ft.FilePickerFileType.IMAGE)
+                        )
+                    ]),
                     ft.ElevatedButton("Continuar", on_click=startToMoveFiles),#type: ignore
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,

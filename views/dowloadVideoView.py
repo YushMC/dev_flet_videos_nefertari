@@ -2,14 +2,18 @@ from utils.class_fetchs import RequestToGetAllVideosToDownload,ReequestToDownloa
 from utils.class_files import InitPaths
 import flet as ft
 from views.base import AllViews
+from views.merge import MergeView
+import base64
+import secrets
 
 class DownloadVideoView(AllViews):
-    def __init__(self, page: ft.Page,):
+    def __init__(self, page: ft.Page, token):
         self.__page= page
         self.__videos= []
+        self.__token= token
 
-    async def getAllVideos(self,  login_data, paths):
-        result = RequestToGetAllVideosToDownload(login_data,paths)
+    async def getAllVideos(self, paths):
+        result = RequestToGetAllVideosToDownload(self.__token,paths)
         if not await result.sendRequest() : raise  Exception(result.message)
         self.__videos= result.trips
         
@@ -25,6 +29,11 @@ class DownloadVideoView(AllViews):
                 )
             )
         return options
+    
+    async def __joinVideos(self, name):
+        videos_to_download_page = MergeView(self.__page,InitPaths(),name)
+        self.__page.views.append(await videos_to_download_page.get_view())
+        self.__page.go("/final")
 
     async def get_view(self) -> ft.View:
         self.__dd = ft.Dropdown(editable=True,label="Video",options=self.get_options(), width=300)
@@ -37,6 +46,11 @@ class DownloadVideoView(AllViews):
             title_padding=ft.padding.all(25),
             icon=ft.Icon()
         )
+
+        def get_selected_label() -> str:
+            raw = secrets.token_bytes(16)  
+            encoded = base64.b64encode(raw).decode("utf-8")
+            return encoded[:10]
 
         async def click_to_download(e):
             self.__page.update()
@@ -56,13 +70,15 @@ class DownloadVideoView(AllViews):
             if response["success"]:
                 self.__page.update()
                 self.__page.close(dlg)
+                dlg.modal = True
                 dlg.title = ft.Text("Correcto")
                 dlg.content = ft.Text(response["message"])
                 dlg.icon = ft.Icon(ft.Icons.CHECK, color=ft.Colors.GREEN, size=50)
                 dlg.actions = [ft.TextButton("Aceptar", on_click=lambda e: self.__page.close(dlg))]
                 dlg.actions_alignment = ft.MainAxisAlignment.END
-                #dlg.on_dismiss= await self.__getVideos(response["token"])
+                dlg.on_dismiss= await self.__joinVideos(get_selected_label())
                 self.__page.open(dlg)
+                self.__page.update()
             else:
                 self.__page.update()
                 self.__page.close(dlg)
@@ -72,6 +88,7 @@ class DownloadVideoView(AllViews):
                 dlg.actions = [ft.TextButton("Aceptar", on_click=lambda e: self.__page.close(dlg))]
                 dlg.actions_alignment = ft.MainAxisAlignment.END
                 self.__page.open(dlg)
+                self.__page.update()
 
         container=  ft.Container(
             content=ft.Column(
