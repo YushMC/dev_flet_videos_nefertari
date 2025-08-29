@@ -17,9 +17,9 @@ class HomeView(AllViews):
         return { "success" : True, "message" : login.message, "token": login.token}  if await login.sendRequest() else { "success" : False, "message" : login.message}
     
     async def __getVideos(self):
-        videos_to_download_page = DownloadVideoView(self.__page,self.__token )
-        await videos_to_download_page.getAllVideos(APIPaths())
+        videos_to_download_page = DownloadVideoView(self.__page, self.__token)
         self.__page.views.clear()
+        await videos_to_download_page.getAllVideos(APIPaths())
         self.__page.views.append(await videos_to_download_page.get_view())
         self.__page.go("/get-videos")
 
@@ -36,11 +36,7 @@ class HomeView(AllViews):
             response = await self.__login()
             if response["success"]:
                 self.__token = response["token"]
-                self.__page.update()
-                dlg.title = ft.Text(response["message"])
-                dlg.icon = ft.Icon(ft.Icons.CHECK, color=ft.Colors.GREEN, size=50)
-                dlg.on_dismiss= await self.__getVideos()
-                self.__page.open(dlg)
+                await self.__getVideos()
             else:
                 self.__page.update()
                 dlg.title = ft.Text(response["message"])

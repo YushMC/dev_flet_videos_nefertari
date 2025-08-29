@@ -1,5 +1,5 @@
 import flet as ft
-from utils.class_fetchs import APIPaths
+from flet import ViewPopEvent, View
 from utils.class_videos import CreateVideosForAgency
 from views.base import AllViews
 import sys
@@ -20,11 +20,7 @@ class MergeView(AllViews):
             return {"success": response["success"], "message": response["message"],"route": response["route"]}
         else:
             return {"success": response["success"], "message": response["message"]}
-    
-    def __getVideos(self):
-        self.__page.update()
-        self.__page.go("/get-videos")
-        self.__page.update()
+        
 
     def __abrir_carpeta(self, route):
         if sys.platform.startswith("darwin"):  # macOS
@@ -72,10 +68,11 @@ class MergeView(AllViews):
             title_padding=ft.padding.all(25),
             icon=ft.Icon()
         )
-
+        
         async def create_click(e):
             self.__page.update()
             dlg.title= ft.Text("Creando video final")
+            dlg.icon = ft.Icon(ft.Icons.INFO, color=ft.Colors.BLUE_500)
             dlg.content=ft.Column(
                 [
                     ft.Text("Por favor espere..."),
@@ -95,10 +92,12 @@ class MergeView(AllViews):
                 dlg.content = ft.Text(response["message"])
                 dlg.icon = ft.Icon(ft.Icons.CHECK, color=ft.Colors.GREEN, size=50)
                 dlg.on_dismiss=self.__abrir_carpeta(response["route"])   #await self.__getVideos(response["token"])
-                dlg.actions = [ft.TextButton("Aceptar", on_click=lambda e: (self.__page.close(dlg) , self.__getVideos()))]
+                def aceptar_click(e):
+                    self.__page.close(dlg)
+
+                dlg.actions = [ft.TextButton("Aceptar", on_click=aceptar_click)]
                 dlg.actions_alignment = ft.MainAxisAlignment.END
                 self.__page.open(dlg)
-                self.__page.update()
             else:
                 self.__page.update()
                 self.__page.close(dlg)
@@ -109,7 +108,6 @@ class MergeView(AllViews):
                 dlg.actions = [ft.TextButton("Aceptar", on_click=lambda e: self.__page.close(dlg))]
                 dlg.actions_alignment = ft.MainAxisAlignment.END
                 self.__page.open(dlg)
-                self.__page.update()
 
         container=  ft.Container(
             content=ft.Column(
@@ -129,6 +127,6 @@ class MergeView(AllViews):
 
         return ft.View(
             '/final',
-            [container]
+            [container, ft.AppBar(title=ft.Text('Crear video'), bgcolor='blue')]
         )
     

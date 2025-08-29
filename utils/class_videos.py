@@ -1,4 +1,3 @@
-
 from moviepy import  * #type: ignore
 import asyncio
 from abc import ABC, abstractmethod
@@ -57,7 +56,7 @@ class AddLogoToVideo(CreateVideos):
             return {"success": False , "message": f"Ocurrio un error {e}"}
 
     def create(self):
-        self.__background = VideoFileClip(self.__video)
+        self.__background = VideoFileClip(self.__video).subclipped(0, 2) #### cambiar esto
         self.__logo_create = ImageClip(self.__logo, duration=self.__background.duration).resized(height=100)
         top= (self.__background.h - self.__logo_create.h)/2 # type: ignore
         self.__logo_create = self.__logo_create.with_position(lambda t: ("right","top")) # type: ignore
@@ -86,4 +85,4 @@ class CreateVideosForAgency():
         if isReadyVideoWithLogo["success"] and isReadyVideoFinal["success"]:
             return {"success": True, "message": "Video generado correctamente", "route": f"{self.__paths.output_path}"}
         else:
-            return {"success": True, "message": "Video generado correctamente" }
+            return {"success": False, "message": "Ocurrio un error" }

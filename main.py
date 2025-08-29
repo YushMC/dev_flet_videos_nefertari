@@ -1,9 +1,11 @@
 from utils.class_files import CheckDirectories, InitPaths, DeleteFile
-from utils.class_fetchs import RequestToGetAllVideosToDownload, ReequestToDownloadVideo
+from utils.class_fetchs import RequestToGetAllVideosToDownload, ReequestToDownloadVideo, APIPaths, RequestToLogin
 from utils.class_videos import CreateVideosForAgency
-from views.home import HomeView
-from views.loadFiles import LoadFiles
-import flet as ft
+from utils.class_input_data import UserDataToLogin
+from home import HomePage
+from login import LoginPage
+from pages.login import LoginPageWindow
+from pages.base import  FrameWindowPlace, MessageBoxDialogs, LabelPack, EntryPack
 import asyncio
 
 async def getAllVideos(login_data, paths) -> bool:
@@ -26,37 +28,49 @@ async def checkInit(files_paths, check):
     if check.checkFilesAndDirectories(files_paths.generate_temp_video_path): DeleteFile(files_paths.generate_temp_video_path)
     if check.checkFilesAndDirectories(files_paths.temp_video_path): DeleteFile(files_paths.temp_video_path)
 
-async def main(page: ft.Page):
-    check = CheckDirectories()
-    check.checkAllDirectories()
-    files_paths = InitPaths()
-    await checkInit(files_paths, check)
-    ##configurations
-    page.title= "Nefertari Editor de Videos"
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+api_paths = APIPaths()
+user_data = UserDataToLogin("","")
+#response = RequestToLogin(user_data, api_paths)
+token_user = ""
+main_window = HomePage("Nefertari Videos", token_user)
 
-    # FilePickers como atributos de clase
-    #file_picker_1 = ft.FilePicker()
-    #file_picker_2 = ft.FilePicker()
-    #file_picker_3 = ft.FilePicker()
-    
-    # IMPORTANTE: agregar FilePickers a la page principal
+def login():
+    if token_user == '': 
+        main_window.instance.withdraw()
+        login_page = LoginPage(main_window.instance)
+        async def request():
+            global token_user
+            user_data.email = login_page.email_input.get()
+            user_data.password = login_page.password_input.get()
+            response = await RequestToLogin(user_data, api_paths).sendRequest()
 
-    #page.overlay.extend([file_picker_1, file_picker_2, file_picker_3])
-    #page.update()
-    #init views
-    if check.checkFilesAndDirectories(files_paths.intro_video_path) and check.checkFilesAndDirectories(files_paths.outro_video_path) and check.checkFilesAndDirectories(files_paths.logo_path):
-        home_page = HomeView(page)
-        page.views.append(await home_page.get_view())
-        page.go("/home")
-    else:
-        files_page = LoadFiles(page)
-        page.views.append(await files_page.get_view())
-        page.go("/files")
-    
-async def run_app():
-    await ft.app_async(main)
+            if response["success"]:
+                token_user = response["token"]
+                login_page.instance.destroy()
+                main_window.instance.deiconify()
+                MessageBoxDialogs(main_window.instance).show_message_info("Correcto", response["message"])
+            else:
+                MessageBoxDialogs(login_page.instance).show_message_error("Error", response["message"])
 
+        def callback():
+            asyncio.run(request())
+        
+        login_page.button_login.configure(command=callback)
+    else: MessageBoxDialogs(main_window.instance).show_message_info("Bienvenido", "Esto es una prueba")
+
+
+
+
+main_window.button_crear_video.config(command=login)
+main_window.start()
+
+
+
+
+
+
+""" 
 if __name__ == "__main__":
     asyncio.run(run_app())
+
+"""

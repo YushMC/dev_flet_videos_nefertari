@@ -9,20 +9,6 @@ class LoadFiles(AllViews):
         self.__active_text_field = None
         self.__file_picker = ft.FilePicker(on_result=self.__on_file_selected)
         self.__page.overlay.append(self.__file_picker)
-
-        """ 
-        self.__file_picker_1.dialog_title = "intro"
-        self.__file_picker_2.dialog_title = "outro"
-        self.__file_picker_3.dialog_title = "logo"
-
-        self.__file_picker_1.on_result = self.on_file_selected
-        self.__file_picker_2.on_result = self.on_file_selected
-        self.__file_picker_3.on_result = self.on_file_selected
-        print("FilePickers configurados:", self.__file_picker_1, self.__file_picker_2, self.__file_picker_3)
-        self.__intro_video = ft.TextField(label="Video de introduccción", width=600)
-        self.__outro_video = ft.TextField(label="Video de despedida", width=600)
-        self.__agency_logo = ft.TextField(label="Logo de la agencia", width=600)
-        """
         self.__intro_video = ft.TextField(label="Video de introduccción", width=600)
         self.__outro_video = ft.TextField(label="Video de despedida", width=600)
         self.__agency_logo = ft.TextField(label="Logo de la agencia", width=600)

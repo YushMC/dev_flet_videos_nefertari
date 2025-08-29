@@ -1,6 +1,8 @@
 nefertari_videos/
 utils/__pycache__/
 views/__pycache__/
+pages/__pycache__/
+__pycache__/
 input/
 output/
 temp/

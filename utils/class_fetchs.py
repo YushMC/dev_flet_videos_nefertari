@@ -44,7 +44,6 @@ class RequestToLogin(Requests):
         self.__end_point_api = api_path.endpoint("login")
         self.__user_data =  {"user":user_data_to_login.email, "password": user_data_to_login.password}
         self.__response = {}
-        self.__message= ""
 
     async def sendRequest(self) :
         async with aiohttp.ClientSession() as session:
@@ -52,27 +51,25 @@ class RequestToLogin(Requests):
                 async with session.post(self.__end_point_api, json=self.__user_data, ssl=self._ssl_context) as response:
                     if response.status == 200:
                         self.__response= await response.json()
-                        self.__message= self.__response["message"]
-                        return True
+                        return {"success": True, "message": self.__response["message"], "token": self.__response["token"]}
                     else:
                         message_response = await response.json()
-                        self.__message = f"Error: {message_response['message']}"
-                        return False
+                        return {"success": False, "message": f"Error: {message_response['message']}"}
             except Exception as e:
-                self.__message = f"ocurrio un error: {e}"
-                return False
+                return {"success": False, "message": f"Error: {e}"}
     
     @property
     def token(self):
         return self.__response["token"]
     
-    @property
-    def message(self):
-        return self.__message
-    
     def __str__(self) -> str:
-        return f"RequestToLogin(end_point_api= {self.__end_point_api}, user_data= {self.__user_data}, response= {self.__response}, message= {self.__message})"
-    
+        return f"RequestToLogin(end_point_api= {self.__end_point_api}, user_data= {self.__user_data}, response= {self.__response})"
+
+class DataUser:
+    @property
+    def getToken(self) -> str:
+        return str(RequestToLogin.token)
+
 class ReequestToDownloadVideo(Requests):
     def __init__(self, url, init_paths):
         super().__init__()
