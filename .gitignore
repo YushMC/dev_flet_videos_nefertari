@@ -9,3 +9,4 @@ temp/
 .DS_store
 storage
 dist/
+build/

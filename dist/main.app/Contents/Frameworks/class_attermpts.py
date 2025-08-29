@@ -1,1 +1,0 @@
-../Resources/class_attermpts.py
