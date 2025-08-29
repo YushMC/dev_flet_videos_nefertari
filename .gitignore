@@ -8,3 +8,4 @@ output/
 temp/
 .DS_store
 storage
+dist/
