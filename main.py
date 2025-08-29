@@ -1,76 +1,90 @@
-from utils.class_files import CheckDirectories, InitPaths, DeleteFile
-from utils.class_fetchs import RequestToGetAllVideosToDownload, ReequestToDownloadVideo, APIPaths, RequestToLogin
-from utils.class_videos import CreateVideosForAgency
+from utils.class_files import CheckDirectories, InitPaths, DeleteFile, MoveFIles
+from utils.class_fetchs import RequestToGetAllVideosToDownload, APIPaths, RequestToLogin
 from utils.class_input_data import UserDataToLogin
 from home import HomePage
 from login import LoginPage
-from pages.login import LoginPageWindow
-from pages.base import  FrameWindowPlace, MessageBoxDialogs, LabelPack, EntryPack
+from download import DownloadPage
+from file_selected import FileSelectedPage
+from pages.base import  MessageBoxDialogs
 import asyncio
 
-async def getAllVideos(login_data, paths) -> bool:
-    result = RequestToGetAllVideosToDownload(login_data, paths)
-    if not await result.sendRequest() : raise  Exception(result.message)
-    return True
-
-async def downloadVideo(url, paths) -> bool:
-    download = ReequestToDownloadVideo(url, paths)
-    if not await download.sendRequest(): raise  Exception(download.message)
-    return True
-
  
-async def crearVideos(files_paths):
-    final_video = CreateVideosForAgency(files_paths, "viaje_final.mp4")
-    print("Video Listo") if await final_video.createVideo() else print("Ocurrio un error")
-
-async def checkInit(files_paths, check):
+def checkInit(files_paths, check):
     #if not check.checkFilesAndDirectories(files_paths.temp_video_path): await downloadVideo("https://nefertari.s3.us-east-2.amazonaws.com/videos/viaje.mp4", files_paths)
     if check.checkFilesAndDirectories(files_paths.generate_temp_video_path): DeleteFile(files_paths.generate_temp_video_path)
     if check.checkFilesAndDirectories(files_paths.temp_video_path): DeleteFile(files_paths.temp_video_path)
 
+def checkFilesVideos(files_paths: InitPaths, check:CheckDirectories):
+    return True if check.checkFilesAndDirectories(files_paths.intro_video_path) and check.checkFilesAndDirectories(files_paths.outro_video_path) and  check.checkFilesAndDirectories(files_paths.logo_path) else False
+    
+
+
 api_paths = APIPaths()
+file_paths= InitPaths()
 user_data = UserDataToLogin("","")
-#response = RequestToLogin(user_data, api_paths)
+check_files = CheckDirectories()
+move_files= MoveFIles()
 token_user = ""
-main_window = HomePage("Nefertari Videos", token_user)
+trips= []
+checkInit(file_paths, check_files)
+main_window = HomePage("Editor de Videos Nefertari", token_user)
 
 def login():
-    if token_user == '': 
-        main_window.instance.withdraw()
+    if len(trips)==0: 
+        
+        MessageBoxDialogs(main_window.instance).show_message_warning("Advertencia", "No ha iniciado sesión, será redirigido a la ventana de incio de sesión")
+        main_window.hide()
         login_page = LoginPage(main_window.instance)
         async def request():
-            global token_user
+            global trips
             user_data.email = login_page.email_input.get()
             user_data.password = login_page.password_input.get()
             response = await RequestToLogin(user_data, api_paths).sendRequest()
 
             if response["success"]:
-                token_user = response["token"]
-                login_page.instance.destroy()
-                main_window.instance.deiconify()
-                MessageBoxDialogs(main_window.instance).show_message_info("Correcto", response["message"])
+                response2 = await RequestToGetAllVideosToDownload(response["token"], api_paths).sendRequest()
+                if response2["success"]:
+                    trips = response2["trips"]
+                    login_page.delete()
+                    main_window.show()
+                    MessageBoxDialogs(main_window.instance).show_message_info("Correcto", response["message"])
+                else:
+                    MessageBoxDialogs(main_window.instance).show_message_error("Error", response["message"])
             else:
                 MessageBoxDialogs(login_page.instance).show_message_error("Error", response["message"])
 
         def callback():
             asyncio.run(request())
-        
         login_page.button_login.configure(command=callback)
-    else: MessageBoxDialogs(main_window.instance).show_message_info("Bienvenido", "Esto es una prueba")
 
 
+    #FIXME: Continuar con la ventana de descarga
+    elif not checkFilesVideos(file_paths, check_files):
+        MessageBoxDialogs(main_window.instance).show_message_warning("Advertencia", "No se han detectado archivos importantes, será redirigido a la ventana de carga de archvivos")
+        main_window.hide()
+        files_page = FileSelectedPage(main_window.instance)
+
+        def move_all_files():
+            if files_page.video_intro_input.get() !='' and files_page.video_outro_input.get() !='' and files_page.logo_input.get() != '':
+                move_files.moveMp4(files_page.video_intro_input.get(),file_paths.intro_video_path)
+                move_files.moveMp4(files_page.video_outro_input.get(),file_paths.outro_video_path)
+                move_files.moveImg(files_page.logo_input.get())
+                MessageBoxDialogs(files_page.instance).show_message_info("Correcto", "los archivos se han cargado correctamente")
+                main_window.show()
+                files_page.delete()
+            else:
+                MessageBoxDialogs(files_page.instance).show_message_warning("Advertencia", "No se han detectado ubicaciones de archivos")
+
+        files_page.button_check.configure(command=move_all_files)
+
+    else:
+        main_window.hide()
+        download_page = DownloadPage(main_window.instance, trips)
+        def back_to_main():
+            download_page.hide()
+            main_window.show()
+        download_page.button_back_to_main.configure(command=back_to_main)
 
 
 main_window.button_crear_video.config(command=login)
 main_window.start()
-
-
-
-
-
-
-""" 
-if __name__ == "__main__":
-    asyncio.run(run_app())
-
-"""

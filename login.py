@@ -11,6 +11,7 @@ class LoginPage:
         self.__password_label = LabelPack(self.__frame_container.instance, "Contraseña", "top", False, 5, 5)
         self.__password_input = EntryPack(self.__frame_container.instance, "top", False, 300)
         self.__button_login= ButtonPack(self.__frame_container.instance, "Entrar", "top", False, 0 ,1, 0,0)
+        self.__login_page.instance.protocol("WM_DELETE_WINDOW", window.destroy)
 
     @property
     def instance(self):
@@ -43,3 +44,12 @@ class LoginPage:
     @button_login.setter
     def button_login(self, value):
         self.__button_login.instance = value
+
+    def hide(self):
+        self.__login_page.instance.withdraw()
+
+    def show(self):
+        self.__login_page.instance.deiconify()
+
+    def delete(self):
+        self.__login_page.instance.destroy()

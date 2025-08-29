@@ -41,7 +41,14 @@ class HomePage:
     def button_abrir_carpeta(self, value):
         self.__button_abrir_carpeta.instance = value
 
-
     def start(self):
         self.__main_window.start()
 
+    def hide(self):
+        self.__main_window.instance.withdraw()
+
+    def show(self):
+        self.__main_window.instance.deiconify()
+
+    def delete(self):
+        self.__main_window.instance.destroy()
