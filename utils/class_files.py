@@ -46,7 +46,7 @@ class InitPaths:
         self.logo_path = os.path.join(self.input_path, "logo.webp")
 
         # Recursos empaquetados (solo lectura dentro del bundle)
-        self.logo_file = resource_path("images/logo.png")
+        self.logo_file = resource_path("images\\logo.png")
 
     def __str__(self):
         return (f"InitPaths(base_write_path={self.base_write_path}, "
