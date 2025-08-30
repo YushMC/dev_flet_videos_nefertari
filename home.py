@@ -1,12 +1,13 @@
-from pages.base import  FrameWindowPack, FrameWindowGrid , ButtonGrid, MessageBoxDialogs, ImageLogoPack
+from pages.base import  FrameWindowPack, FrameWindowGrid , ButtonGrid, ImageLogoPack
+from utils.class_files import InitPaths
 from pages.home import MainPageWindow
 
-
 class HomePage:
-    def __init__(self, titulo, token) -> None:
-        self.__main_window = MainPageWindow(titulo, 500, 400, "images/logo.png")
+    def __init__(self, root, titulo, token, paths) -> None:
+        self.__paths= paths
+        self.__main_window = MainPageWindow(root,titulo, 500, 400, self.__paths.logo_file)
         self.__frame_for_image = FrameWindowPack(self.__main_window.instance,400, 300, False, "center")
-        self.__image_logo = ImageLogoPack(self.__frame_for_image.instance, "images/logo.png",300 ,200,"top", True)
+        self.__image_logo = ImageLogoPack(self.__frame_for_image.instance, self.__paths.logo_file,300 ,200,"top", True)
 
         self.__frame_bottom = FrameWindowPack(self.__main_window.instance, 0,0, True, "center")
 

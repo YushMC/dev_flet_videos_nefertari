@@ -1,3 +1,7 @@
+import os
+os.environ["SDL_VIDEODRIVER"] = "dummy"  # evita pygame windows
+os.environ["DISPLAY"] = ""               # en mac/linux, evita usar X11
+
 from moviepy import  * #type: ignore
 import asyncio
 from abc import ABC, abstractmethod
@@ -12,8 +16,9 @@ class CreateFinalVideo(CreateVideos):
     def __init__(self, paths, name):
         self.__intro = VideoFileClip(paths.intro_video_path)
         self.__outro = VideoFileClip(paths.outro_video_path)
-        self.__temp= VideoFileClip(paths.generate_temp_video_path)
+        self.__temp= VideoFileClip(paths.temp_video_to_generate_path)
         self.__output = paths.output_path
+        self.__audio_temp= paths.audio_final_video_logo
         self.__name= name
         self.__final_clip = ""
 
@@ -26,7 +31,7 @@ class CreateFinalVideo(CreateVideos):
     async def start(self)-> dict:
         self.__concatenate()
         try:
-            await asyncio.to_thread(self.__final_clip.write_videofile, f"{self.__output}/{self.__name}") #type: ignore
+            await asyncio.to_thread(self.__final_clip.write_videofile, f"{self.__output}/{self.__name}",temp_audiofile=self.__audio_temp, audio_codec="mp3", logger=None) #type: ignore
             self.__intro.close()
             self.__temp.close()
             self.__outro.close()
@@ -39,15 +44,16 @@ class CreateFinalVideo(CreateVideos):
 class AddLogoToVideo(CreateVideos):
     def __init__(self, paths):
         self.__video = paths.temp_video_path
+        self.__audio_temp= paths.audio_temp_video_logo
         self.__logo = paths.logo_path
-        self.__temp= paths.generate_temp_video_path
+        self.__temp= paths.temp_video_to_generate_path
         self.__background= ""
         self.__logo_create= ""
         self.__final_clip = ""
 
     async def start(self)-> dict:
         try:
-            await asyncio.to_thread(self.__final_clip.write_videofile, self.__temp) #type: ignore
+            await asyncio.to_thread(self.__final_clip.write_videofile, self.__temp, temp_audiofile=self.__audio_temp, audio_codec="mp3", logger=None) #type: ignore
             self.__background.close() #type: ignore
             self.__logo_create.close() #type: ignore
             self.__final_clip.close() #type: ignore
@@ -56,7 +62,7 @@ class AddLogoToVideo(CreateVideos):
             return {"success": False , "message": f"Ocurrio un error {e}"}
 
     def create(self):
-        self.__background = VideoFileClip(self.__video) #### cambiar esto
+        self.__background = VideoFileClip(self.__video)#### cambiar esto
         self.__logo_create = ImageClip(self.__logo, duration=self.__background.duration).resized(height=100)
         top= (self.__background.h - self.__logo_create.h)/2 # type: ignore
         self.__logo_create = self.__logo_create.with_position(lambda t: ("right","top")) # type: ignore

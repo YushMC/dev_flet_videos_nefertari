@@ -4,20 +4,64 @@ from utils.class_attermpts import AttemptsClass
 import platform
 from PIL import Image
 
-def resource_path(relative_path: str) -> str:
-    """Devuelve la ruta correcta tanto en dev como en ejecutable"""
-    if getattr(sys, "_MEIPASS", None):
-        # Cuando corres el .exe/.app
-        return os.path.join(sys._MEIPASS, relative_path)
-    return os.path.join(os.path.abspath("."), relative_path)
+# Función para recursos empaquetados
+def resource_path(relative_path):
+    """
+    Devuelve la ruta absoluta de un recurso, ya sea ejecutable PyInstaller o script normal
+    """
+    try:
+        base_path = sys._MEIPASS  # Bundle PyInstaller
+    except AttributeError:
+        base_path = os.getcwd()    # Script normal
+    return os.path.join(base_path, relative_path)
 
 class InitPaths:
     def __init__(self):
-        base = os.path.abspath(".")  # por defecto
-        if hasattr(sys, "_MEIPASS"):
-            base = sys._MEIPASS  # en ejecutable PyInstaller
+        sistema = platform.system()
+        # Carpeta base de escritura (input/output/temp) fuera del bundle
+        if sistema == "Windows":
+            # Carpeta base de usuario en Windows
+            self.base_write_path = os.path.join(os.environ["USERPROFILE"], "NefertariVideos")
+        else:
+            # macOS / Linux
+            self.base_write_path = os.path.join(os.path.expanduser("~"), "NefertariVideos")
+        self.input_path = os.path.join(self.base_write_path, "input")
+        self.output_path = os.path.join(self.base_write_path, "output")
+        self.temp_path = os.path.join(self.base_write_path, "temp")
+        self.logs = os.path.join(self.base_write_path, "log.txt")
 
-        self.__base_path = base
+        # Crear carpetas si no existen
+        for path in [self.input_path, self.output_path, self.temp_path]:
+            os.makedirs(path, exist_ok=True)
+
+        # Rutas de archivos temporales
+        self.temp_video_path = os.path.join(self.temp_path, "viaje.mp4")
+        self.temp_video_to_generate_path = os.path.join(self.temp_path, "temp_video.mp4")
+        self.audio_temp_video_logo = os.path.join(self.temp_path, "temp_audio.mp3")
+        self.audio_final_video_logo = os.path.join(self.temp_path, "temp_final_audio.mp3")
+
+        # Rutas de archivos de entrada (escritura/lectura del usuario)
+        self.intro_video_path = os.path.join(self.input_path, "intro.mp4")
+        self.outro_video_path = os.path.join(self.input_path, "outro.mp4")
+        self.logo_path = os.path.join(self.input_path, "logo.webp")
+
+        # Recursos empaquetados (solo lectura dentro del bundle)
+        self.logo_file = resource_path("images/logo.png")
+
+    def __str__(self):
+        return (f"InitPaths(base_write_path={self.base_write_path}, "
+                f"input={self.input_path}, output={self.output_path}, temp={self.temp_path})")
+
+
+
+""" 
+class InitPaths:
+    def __init__(self):
+        if getattr(sys, 'frozen', False):
+            # Path dentro del bundle de PyInstaller
+            self.__base_path = sys._MEIPASS
+        else:
+            self.__base_path = os.getcwd() # en ejecutable PyInstaller
         self.allpaths= [f"{self.__base_path}/output", f"{self.__base_path}/input",  f"{self.__base_path}/temp"]
         self.__output_path= f"{self.__base_path}/output"
         self.__input_path= f"{self.__base_path}/input"
@@ -67,6 +111,7 @@ class InitPaths:
     def __str__(self) -> str:
         return f"InitPaths(base_path= {self.base_path}, temp_path= {self.temp_path}, output_path= {self.output_path}, input_path= {self.input_path})"
 
+"""
 class MakeDierctory:
     def make(self, path):
         os.mkdir(path)
@@ -79,8 +124,7 @@ class CheckDirectories(InitPaths, MakeDierctory):
         if not os.path.exists(route) : MakeDierctory.make(self, route)
     
     def checkAllDirectories(self):
-        for route in self.allpaths:
-            self.createDirectories(route)
+        pass
                
     def checkFilesAndDirectories(self, route):
         return os.path.exists(route)

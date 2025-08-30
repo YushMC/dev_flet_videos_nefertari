@@ -23,7 +23,8 @@ class SpinnerPage:
         self.__spinner.geometry(f"300x200+{x}+{y}")
         self.__spinner.protocol("WM_DELETE_WINDOW", lambda: None)
 
-        ttk.Label(self.__spinner, text="Espere un momento...").pack(pady=10)
+        self.__message = tk.Label(self.__spinner, text="Espere un momento...")
+        self.__message.pack(pady=10)
 
         # Barra de progreso tipo spinner
         progress = ttk.Progressbar(self.__spinner, mode="indeterminate")
@@ -32,3 +33,19 @@ class SpinnerPage:
 
     def delete(self):
         self.__spinner.destroy()
+
+    @property
+    def instance(self):
+        return self.__spinner
+    
+    @instance.setter
+    def instance(self, value):
+        self.__spinner = value
+
+    @property
+    def message_spinner(self):
+        return self.__message
+    
+    @message_spinner.setter
+    def message_spinner(self, value):
+        self.__message = value

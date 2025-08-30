@@ -1,4 +1,10 @@
-from utils.class_files import CheckDirectories, InitPaths, DeleteFile, MoveFIles
+from utils.class_files import CheckDirectories, InitPaths, DeleteFile, MoveFIles, ShowFiles
+import os, sys
+file_paths= InitPaths()
+#os.makedirs(os.path.dirname(file_paths.logs), exist_ok=True)
+#sys.stdout = open(file_paths.logs, "a")
+#sys.stderr = open(file_paths.logs, "a")
+
 from utils.class_fetchs import RequestToGetAllVideosToDownload, APIPaths, RequestToLogin
 from utils.class_input_data import UserDataToLogin
 from home import HomePage
@@ -7,27 +13,30 @@ from download import DownloadPage
 from file_selected import FileSelectedPage
 from pages.base import  MessageBoxDialogs
 import asyncio
+import tkinter as tk
 
  
 def checkInit(files_paths, check):
     #if not check.checkFilesAndDirectories(files_paths.temp_video_path): await downloadVideo("https://nefertari.s3.us-east-2.amazonaws.com/videos/viaje.mp4", files_paths)
-    if check.checkFilesAndDirectories(files_paths.generate_temp_video_path): DeleteFile(files_paths.generate_temp_video_path)
+    if check.checkFilesAndDirectories(files_paths.temp_video_to_generate_path): DeleteFile(files_paths.temp_video_to_generate_path)
     if check.checkFilesAndDirectories(files_paths.temp_video_path): DeleteFile(files_paths.temp_video_path)
 
 def checkFilesVideos(files_paths: InitPaths, check:CheckDirectories):
     return True if check.checkFilesAndDirectories(files_paths.intro_video_path) and check.checkFilesAndDirectories(files_paths.outro_video_path) and  check.checkFilesAndDirectories(files_paths.logo_path) else False
-    
-
-
 api_paths = APIPaths()
-file_paths= InitPaths()
 user_data = UserDataToLogin("","")
 check_files = CheckDirectories()
 move_files= MoveFIles()
 token_user = ""
 trips= []
-checkInit(file_paths, check_files)
-main_window = HomePage("Editor de Videos Nefertari", token_user)
+# Función de utilidad
+def get_root():
+    return tk.Tk()
+
+# Inicio de tu aplicación
+root = get_root()
+#checkInit(file_paths, check_files)
+main_window = HomePage(root,"Editor de Videos Nefertari", token_user, file_paths)
 
 def login():
     if len(trips)==0: 
@@ -76,15 +85,22 @@ def login():
                 MessageBoxDialogs(files_page.instance).show_message_warning("Advertencia", "No se han detectado ubicaciones de archivos")
 
         files_page.button_check.configure(command=move_all_files)
-
+        
     else:
         main_window.hide()
-        download_page = DownloadPage(main_window.instance, trips)
+        download_page = DownloadPage(main_window.instance, trips, file_paths)
         def back_to_main():
             download_page.hide()
             main_window.show()
         download_page.button_back_to_main.configure(command=back_to_main)
 
 
+def open_carpeta():
+    respuesta= ShowFiles().showFile(file_paths.base_write_path)
+    if not respuesta.success: print(respuesta.message)
+
 main_window.button_crear_video.config(command=login)
+main_window.button_abrir_carpeta.configure(command=open_carpeta)
 main_window.start()
+
+

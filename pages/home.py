@@ -4,8 +4,8 @@ import tkinter as tk
 from PIL import Image, ImageTk
     
 class MainPageWindow(AllPages):
-    def __init__(self, title: str, width: int, height: int, url_icon) -> None:
-        self.__window = tk.Tk()
+    def __init__(self, root, title: str, width: int, height: int, url_icon) -> None:
+        self.__window = root
         self.__window.title(title)
         self.__width= width
         self.__height= height
