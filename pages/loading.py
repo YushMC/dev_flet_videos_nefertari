@@ -23,7 +23,7 @@ class SpinnerPage:
         self.__spinner.geometry(f"300x200+{x}+{y}")
         self.__spinner.protocol("WM_DELETE_WINDOW", lambda: None)
 
-        self.__message = tk.Label(self.__spinner, text="Espere un momento...")
+        self.__message = tk.Label(self.__spinner, text="Descargando video...")
         self.__message.pack(pady=10)
 
         # Barra de progreso tipo spinner
