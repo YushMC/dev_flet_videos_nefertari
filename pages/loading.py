@@ -18,7 +18,7 @@ class SpinnerPage:
         self.__h= window_father.winfo_height()
         x = self.__x + (self.__w // 2) - (300 // 2)
         y = self.__y + (self.__h // 2) - (200 // 2)
-        self.__spinner.geometry(f"300x200+{x}+{y}")
+        self.__spinner.geometry(f"400x200+{x}+{y}")
         self.__spinner.protocol("WM_DELETE_WINDOW", lambda: None)
         self.__spinner.attributes("-topmost", True)
         self.__message_video_name = tk.Label(self.__spinner, text=f"Video: {name}")

@@ -35,7 +35,7 @@ def get_root():
 
 # Inicio de tu aplicación
 root = get_root()
-#checkInit(file_paths, check_files)
+checkInit(file_paths, check_files)
 main_window = HomePage(root,"Editor de Videos Nefertari", token_user, file_paths)
 
 def login():
