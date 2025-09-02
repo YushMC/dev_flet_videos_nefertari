@@ -10,7 +10,7 @@ def resource_path(relative_path):
     Devuelve la ruta absoluta de un recurso, ya sea ejecutable PyInstaller o script normal
     """
     try:
-        base_path = sys._MEIPASS  # Bundle PyInstaller
+        base_path = sys._MEIPASS  #type:ignore
     except AttributeError:
         base_path = os.getcwd()    # Script normal
     return os.path.join(base_path, relative_path)
