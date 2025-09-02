@@ -26,15 +26,13 @@ class DownloadPage:
 
     def get_url(self):
         """Ejecuta todo el proceso en orden dentro de un hilo para no bloquear Tkinter"""
+        self.hide()
         response = self.__combo_box.selected_item()
         if not response["success"]:
             MessageBoxDialogs(self.__download_page.instance).show_message_error("Error", "No se seleccionó ningún video")
             return
 
         # Ejecutar la corrutina en el loop principal de asyncio, no en un nuevo hilo
-        self.__download_page.instance.attributes("-alpha", 0.9)
-        self.__button_download.instance.configure(state="disabled")
-        self.__button_back.instance.configure(state="disabled")
         threading.Thread(target=lambda: asyncio.run(self.__process_video(response["url_video"], response["name"])),daemon=True).start()
 
     async def __process_video(self, video_url, name):
@@ -46,27 +44,26 @@ class DownloadPage:
         
         # Usar un solo spinner
         if self._spinner is None or not self._spinner.instance.winfo_exists():
-           self._spinner = SpinnerPage(self.__download_page.instance)
+           self._spinner = SpinnerPage(self.__download_page.instance, name)
         else:
             self._spinner.instance.lift()
         await self.__download_video(video_url)
 
         # 2️⃣ Spinner para crear logo
-        self.__download_page.instance.after(0, lambda: self._spinner.message_spinner.configure(text="Agregando Logo a Video"))#type: ignore
+        self.__download_page.instance.after(0, lambda: self._spinner.message_spinner.configure(text="Estado: Agregando logo"))#type: ignore
         await self.__create_video_logo()
         
 
         # 3️⃣ Spinner para generar video final
-        self.__download_page.instance.after(0, lambda: self._spinner.message_spinner.configure(text="Creando Video Final"))#type: ignore
+        self.__download_page.instance.after(0, lambda: self._spinner.message_spinner.configure(text="Estado: Generando Video"))#type: ignore
         resp_final = await self.__create_video_final(name)
         #self.__download_page.instance.after(0, self._spinner.delete)
         
         
         def restore_ui():
+            self._spinner.detener_timer()#type:ignore
             self._spinner.delete()#type: ignore
-            self.__download_page.instance.attributes("-alpha", 1)
-            self.__button_download.instance.configure(state="normal")
-            self.__button_back.instance.configure(state="normal")
+            self.show()
             MessageBoxDialogs(self.__download_page.instance).show_message_info("Final", resp_final["message"])
             respuesta= ShowFiles().showFile(resp_final["ubication"])
             if not respuesta.success: print(respuesta.message)
