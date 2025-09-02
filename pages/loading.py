@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 import time
+from pages.base import MessageBoxDialogs
+import threading
 
 class SpinnerPage:
     def __init__(self, window_father, name) -> None:
@@ -29,14 +31,16 @@ class SpinnerPage:
         progress.pack(pady=10, fill="x", padx=20)
         progress.start(10)  # velocidad de animación
         self.label_time = tk.Label(self.__spinner, text="Tiempo transcurrido:")
-        self.label_time.pack(pady=10)
-        self.label_timer = tk.Label(self.__spinner, text="00:00:00", font=("Helvetica", 20))
-        self.label_timer.pack(pady=10)
-
+        self.label_time.pack(pady=1)
+        self.label_timer = tk.Label(self.__spinner, text="00:00:00")
+        self.label_timer.pack(pady=1)
         self.inicio = None
         self.en_ejecucion = False
         self.tiempo_transcurrido = 0
         self.start_timer()
+
+    def showalert(self):
+        self.__spinner.after(0, lambda: MessageBoxDialogs(self.__spinner).show_message_warning('Precaución','No es posible cerrar o cancelar este proceso.'))
 
     def start_timer(self):
         if not self.en_ejecucion:
