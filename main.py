@@ -1,9 +1,9 @@
 from utils.class_files import CheckDirectories, InitPaths, DeleteFile, MoveFIles, ShowFiles
 import os, sys
 file_paths= InitPaths()
-#os.makedirs(os.path.dirname(file_paths.logs), exist_ok=True)
-#sys.stdout = open(file_paths.logs, "a")
-#sys.stderr = open(file_paths.logs, "a")
+os.makedirs(os.path.dirname(file_paths.logs), exist_ok=True)
+sys.stdout = open(file_paths.logs, "a")
+sys.stderr = open(file_paths.logs, "a")
 
 from utils.class_fetchs import RequestToGetAllVideosToDownload, APIPaths, RequestToLogin
 from utils.class_input_data import UserDataToLogin

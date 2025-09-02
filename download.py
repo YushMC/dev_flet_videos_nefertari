@@ -35,38 +35,43 @@ class DownloadPage:
         self.__download_page.instance.attributes("-alpha", 0.9)
         self.__button_download.instance.configure(state="disabled")
         self.__button_back.instance.configure(state="disabled")
-        self.__download_page.instance.after(0, lambda: asyncio.run(self.__wrapper(response["url_video"], response["name"])))
+        threading.Thread(target=lambda: asyncio.run(self.__process_video(response["url_video"], response["name"])),daemon=True).start()
 
-    def __process_video(self, video_url, name):
+    async def __process_video(self, video_url, name):
         """Hilo que ejecuta todo el flujo asincrónicamente"""
-        asyncio.run(self.__wrapper(video_url, name))
+        await self.__wrapper(video_url, name)
 
     async def __wrapper(self, video_url, name):
         # 1️⃣ Spinner mientras se descarga el video
         
         # Usar un solo spinner
-        #if self._spinner is None or not self._spinner.instance.winfo_exists():
-        #   self._spinner = SpinnerPage(self.__download_page.instance)
-        #else:
-        #    self._spinner.instance.lift()
+        if self._spinner is None or not self._spinner.instance.winfo_exists():
+           self._spinner = SpinnerPage(self.__download_page.instance)
+        else:
+            self._spinner.instance.lift()
         await self.__download_video(video_url)
 
         # 2️⃣ Spinner para crear logo
-        #self.__download_page.instance.after(0, lambda: self._spinner.message_spinner.configure(text="Agregando Logo a Video"))
+        self.__download_page.instance.after(0, lambda: self._spinner.message_spinner.configure(text="Agregando Logo a Video"))#type: ignore
         await self.__create_video_logo()
         
 
         # 3️⃣ Spinner para generar video final
-        #self.__download_page.instance.after(0, lambda: self._spinner.message_spinner.configure(text="Creando Video Final"))
+        self.__download_page.instance.after(0, lambda: self._spinner.message_spinner.configure(text="Creando Video Final"))#type: ignore
         resp_final = await self.__create_video_final(name)
         #self.__download_page.instance.after(0, self._spinner.delete)
         
-        respuesta= ShowFiles().showFile(resp_final["ubication"])
-        if not respuesta.success: print(respuesta.message)
-        self.__download_page.instance.attributes("-alpha", 1)
-        self.__button_download.instance.configure(state="normal")
-        self.__button_back.instance.configure(state="normal")
-        MessageBoxDialogs(self.__download_page.instance).show_message_info("Final", resp_final["message"])
+        
+        def restore_ui():
+            self._spinner.delete()#type: ignore
+            self.__download_page.instance.attributes("-alpha", 1)
+            self.__button_download.instance.configure(state="normal")
+            self.__button_back.instance.configure(state="normal")
+            MessageBoxDialogs(self.__download_page.instance).show_message_info("Final", resp_final["message"])
+            respuesta= ShowFiles().showFile(resp_final["ubication"])
+            if not respuesta.success: print(respuesta.message)
+        
+        self.__download_page.instance.after(0, restore_ui)
 
     async def __download_video(self, url):
         response = await ReequestToDownloadVideo(url,self.__paths).sendRequest()
