@@ -1,9 +1,9 @@
 from utils.class_files import CheckDirectories, InitPaths, DeleteFile, MoveFIles, ShowFiles
 import os, sys
 file_paths= InitPaths()
-#os.makedirs(os.path.dirname(file_paths.logs), exist_ok=True)
-#sys.stdout = open(file_paths.logs, "a")
-#sys.stderr = open(file_paths.logs, "a")
+os.makedirs(os.path.dirname(file_paths.logs), exist_ok=True)
+sys.stdout = open(file_paths.logs, "a")
+sys.stderr = open(file_paths.logs, "a")
 
 from utils.class_fetchs import RequestToGetAllVideosToDownload, APIPaths, RequestToLogin
 from utils.class_check_init_files import ConfigFileValues
@@ -207,7 +207,7 @@ def open_carpeta():
     if not respuesta.success: print(respuesta.message)
 
 def change():
-    main_window.hide
+    main_window.hide()
     directory_page = DirectorySelectedPage(main_window.instance, "")
     directory_page.instance.protocol("WM_DELETE_WINDOW", directory_page.instance.destroy)
     def move_all_files():
@@ -220,7 +220,7 @@ def change():
         MessageBoxDialogs(main_window.instance).show_message_info("Correcto", "Archivos movidos correctamente.")
     directory_page.button_check.configure(command=move_all_files)
     def back_to_main():
-        directory_page.hide()
+        directory_page.delete()
         main_window.show()
     directory_page.button_back.configure(command=back_to_main)
 

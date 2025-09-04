@@ -1,4 +1,4 @@
-from pages.base import  FrameWindowPlace, LabelPack , EntryGrid, ButtonPack, FrameWindowGrid, ButtonGrid, FrameWindowPack, InputFilesWidget
+from pages.base import  FrameWindowPlace, LabelPack , EntryGrid, ButtonPack, FrameWindowGrid, ButtonGrid, FrameWindowPack, InputFilesWidget, ButtonPlace
 from pages.select_files import SelectFilePageWindow
 import tkinter as tk
 
