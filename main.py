@@ -207,6 +207,7 @@ def open_carpeta():
     if not respuesta.success: print(respuesta.message)
 
 def change():
+    main_window.hide
     directory_page = DirectorySelectedPage(main_window.instance, "")
     directory_page.instance.protocol("WM_DELETE_WINDOW", directory_page.instance.destroy)
     def move_all_files():
@@ -218,6 +219,10 @@ def change():
         main_window.show()
         MessageBoxDialogs(main_window.instance).show_message_info("Correcto", "Archivos movidos correctamente.")
     directory_page.button_check.configure(command=move_all_files)
+    def back_to_main():
+        directory_page.hide()
+        main_window.show()
+    directory_page.button_back.configure(command=back_to_main)
 
 main_window.button_crear_video.config(command=create_video)
 main_window.button_abrir_carpeta.configure(command=open_carpeta)

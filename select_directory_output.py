@@ -10,6 +10,7 @@ class DirectorySelectedPage:
         self.__email_label = LabelPack(self.__frame_container.instance, "Directorio de salida", "top", False, 5, 5)
         #input intro
         self._output_default =  output_default
+        self.__button_back = ButtonPlace(self.__file_page.instance, "Regresar", 0.1, 0.05, "center", 100, 30)#type: ignore
         self.__father_container_intro = FrameWindowPack(self.__frame_container.instance, 0, 0,False, "center")
         self.__frame_intro_container= FrameWindowGrid(self.__father_container_intro.instance, 440, 50,"center")
         self.__frame_intro_container.set_row_size(0, 2)
@@ -52,6 +53,14 @@ class DirectorySelectedPage:
     @directory_path.setter
     def directory_path(self, value):
         self.__video_intro_input.instance = value
+
+    @property
+    def button_back(self):
+        return self.__button_back.instance
+    
+    @button_back.setter
+    def button_back(self, value):
+        self.__button_back.instance = value
 
     @property
     def button_check(self):
