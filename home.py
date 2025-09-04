@@ -6,14 +6,14 @@ class HomePage:
     def __init__(self, root, titulo, paths) -> None:
         self.__paths= paths
         self.__main_window = MainPageWindow(root,titulo, 500, 400, self.__paths.logo_file)
-        self.__frame_for_image = FrameWindowPack(self.__main_window.instance,400, 300, False, "center")
+        self.__frame_for_image = FrameWindowPack(self.__main_window.instance,450, 300, False, "center")
         self.__image_logo = ImageLogoPack(self.__frame_for_image.instance, self.__paths.logo_file,300 ,200,"top", True)
 
         self.__frame_bottom = FrameWindowPack(self.__main_window.instance, 0,0, True, "center")
 
-        self.__frame_for_buttons= FrameWindowGrid(self.__frame_bottom.instance, 400, 100, "center")
+        self.__frame_for_buttons= FrameWindowGrid(self.__frame_bottom.instance, 450, 100, "center")
         self.__button_crear_video = ButtonGrid(self.__frame_for_buttons.instance, "Crear Video",0,0, 0,0,"we")
-        self.__button_abrir_carpeta = ButtonGrid(self.__frame_for_buttons.instance, "Abrir Carpeta",0,1, 0,0,"we")
+        self.__button_abrir_carpeta = ButtonGrid(self.__frame_for_buttons.instance, "Abrir Carpeta de salida",0,1, 0,0,"we")
         self.button_cambiar_carpeta = ButtonGrid(self.__frame_for_buttons.instance, "Cambiar ubicación de salida",0,2, 0,0,"we")
         self.__frame_for_buttons.amount_columns_responsives(3)
         self.__frame_for_buttons.amount_rows_responsives(1)
