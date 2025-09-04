@@ -29,7 +29,7 @@ class InitPaths:
         self.output_path = os.path.join(self.base_write_path, "output")
         self.temp_path = os.path.join(self.base_write_path, "temp")
         self.logs = os.path.join(self.base_write_path, "log.txt")
-        self.config_file = os.path.join(self.base_write_path, "config.txt")
+        self.config_file = os.path.join(self.base_write_path, ".config.txt")
 
         # Crear carpetas si no existen
         for path in [self.input_path, self.temp_path]:
