@@ -7,6 +7,7 @@ from utils.class_files import ShowFiles
 from utils.class_videos import CreateVideosForAgency
 import asyncio, threading
 import random
+import os
 
 
 class DownloadPage:
@@ -80,10 +81,10 @@ class DownloadPage:
         return {"success": response["success"], "message": response["message"]}
 
     async def __create_video_final(self, name):
-        texto_base4 = ''.join(str(random.randint(0, 9)) for _ in range(4))
+        texto_base4 = ''.join(str(random.randint(0, 9)) for _ in range(5))
         str_name = f'video_{name}_{texto_base4}.mp4'
         response = await self.__create_videos_for_agency.joinVideos(str_name)
-        return {"success": response["success"], "message": response["message"], "ubication": f"{self.__paths.output_path}/{str_name}"}
+        return {"success": response["success"], "message": response["message"], "ubication": f"{os.path.join(self.__paths.output_path, str_name)}"}
 
     @property 
     def instance(self): 

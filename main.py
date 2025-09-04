@@ -53,82 +53,144 @@ async def getVideos():
     if response_to_videos["success"]: trips = response_to_videos["trips"]
 
 asyncio.run(getVideos())
-
-if len(trips)==0: 
-    main_window.hide()
-    MessageBoxDialogs(main_window.instance).show_message_warning("Advertencia", "No ha iniciado sesión, será redirigido a la ventana de incio de sesión")
-    login_page = LoginPage(main_window.instance)
-    async def request():
-        global trips
-        user_data.email = login_page.email_input.get()
-        user_data.password = login_page.password_input.get()
-        response = await RequestToLogin(user_data, api_paths).sendRequest()
-        if response["success"]:
-            config_file_data.token = response["token"]
-            config_file_data.saveConfigData()
-            response2 = await RequestToGetAllVideosToDownload(response["token"], api_paths).sendRequest()
-            if response2["success"]:
-                trips = response2["trips"]
-                login_page.delete()
-                main_window.show()
-                MessageBoxDialogs(main_window.instance).show_message_info("Correcto", response["message"])
-            else:
-                MessageBoxDialogs(main_window.instance).show_message_error("Error", response["message"])
-        else:
-            MessageBoxDialogs(login_page.instance).show_message_error("Error", response["message"])
-    def callback():
-        asyncio.run(request())
-    login_page.button_login.configure(command=callback)
-elif not checkFilesVideos(file_paths, check_files):
-    main_window.hide()
-    MessageBoxDialogs(main_window.instance).show_message_warning("Advertencia", "No se han detectado archivos importantes, será redirigido a la ventana de carga de archvivos")
-    files_page = FileSelectedPage(main_window.instance)
-    def move_all_files():
-        if files_page.video_intro_input.get() !='' and files_page.video_outro_input.get() !='' and files_page.logo_input.get() != '':
-            move_files.moveMp4(files_page.video_intro_input.get(),file_paths.intro_video_path)
-            move_files.moveMp4(files_page.video_outro_input.get(),file_paths.outro_video_path)
-            move_files.moveImg(files_page.logo_input.get())
-            MessageBoxDialogs(files_page.instance).show_message_info("Correcto", "los archivos se han cargado correctamente")
-            files_page.delete()
-            main_window.show()
-        else:
-            MessageBoxDialogs(files_page.instance).show_message_warning("Advertencia", "No se han detectado ubicaciones de archivos")
-    files_page.button_check.configure(command=move_all_files)
+def check_conditions():
+    global trips
     
-elif check_files.checkFilesAndDirectories(file_paths.output_path): 
-    main_window.hide()
-    response = MessageBoxDialogs(main_window.instance).show_message_confirmation("Importante", "Se ha detectado una carpeta de salida de antiguas versiones, ¿Deseas cambiar de ubicación?")
-    if not response: 
-        main_window.show()
-        config_file_data.output_path = file_paths.output_path
-        config_file_data.saveConfigData()
-        MessageBoxDialogs(main_window.instance).show_message_info("Correcto", "Se utilizará la ubicación por defecto.")
-    else:
-        directory_page = DirectorySelectedPage(main_window.instance)
+    if len(trips) == 0: 
+        main_window.hide()
+        MessageBoxDialogs(main_window.instance).show_message_warning(
+            "Advertencia",
+            "No ha iniciado sesión, será redirigido a la ventana de inicio de sesión"
+        )
+        login_page = LoginPage(main_window.instance)
+        login_page.show()
+
+        async def request():
+            global trips
+            user_data.email = login_page.email_input.get()
+            user_data.password = login_page.password_input.get()
+            response = await RequestToLogin(user_data, api_paths).sendRequest()
+            if response["success"]:
+                config_file_data.token = response["token"]
+                config_file_data.saveConfigData()
+                response2 = await RequestToGetAllVideosToDownload(response["token"], api_paths).sendRequest()
+                if response2["success"]:
+                    trips = response2["trips"]
+                    login_page.delete()
+                    MessageBoxDialogs(main_window.instance).show_message_info("Correcto", response["message"])
+                    main_window.show()
+                    # 🔄 Vuelve a comprobar después de loguear
+                    check_conditions()
+                else:
+                    MessageBoxDialogs(main_window.instance).show_message_error("Error", response["message"])
+                    main_window.delete()
+            else:
+                MessageBoxDialogs(login_page.instance).show_message_error("Error", response["message"])
+                main_window.delete()
+
+        def callback():
+            asyncio.run(request())
+
+        login_page.button_login.configure(command=callback)
+
+    elif not checkFilesVideos(file_paths, check_files):
+        main_window.hide()
+        MessageBoxDialogs(main_window.instance).show_message_warning(
+            "Advertencia",
+            "No se han detectado archivos importantes, será redirigido a la ventana de carga de archivos"
+        )
+        files_page = FileSelectedPage(main_window.instance)
+        files_page.show()
+
         def move_all_files():
-            os.makedirs(os.path.dirname(directory_page.directory_path.get()), exist_ok=True)
-            shutil.move(file_paths.output_path, directory_page.directory_path.get())
-            config_file_data.output_path = os.path.join(directory_page.directory_path.get(),"output")
+            if (files_page.video_intro_input.get() != '' 
+                and files_page.video_outro_input.get() != '' 
+                and files_page.logo_input.get() != ''):
+                
+                move_files.moveMp4(files_page.video_intro_input.get(), file_paths.intro_video_path)
+                move_files.moveMp4(files_page.video_outro_input.get(), file_paths.outro_video_path)
+                move_files.moveImg(files_page.logo_input.get())
+                
+                MessageBoxDialogs(files_page.instance).show_message_info("Correcto", "Los archivos se han cargado correctamente")
+                files_page.delete()
+                main_window.show()
+                
+                # 🔄 Vuelve a comprobar después de cargar archivos
+                check_conditions()
+            else:
+                MessageBoxDialogs(files_page.instance).show_message_warning("Advertencia", "No se han detectado ubicaciones de archivos")
+
+        files_page.button_check.configure(command=move_all_files)
+
+    elif check_files.checkFilesAndDirectories(file_paths.output_path) and config_file_data.output_path == '':
+        main_window.hide()
+        response = MessageBoxDialogs(main_window.instance).show_message_confirmation(
+            "Importante",
+            "Se ha detectado una carpeta de salida de antiguas versiones, ¿Deseas cambiar de ubicación?"
+        )
+        if not response:
+            config_file_data.output_path = file_paths.output_path
             config_file_data.saveConfigData()
-            directory_page.delete()
+            MessageBoxDialogs(main_window.instance).show_message_info("Correcto", "Se utilizará la ubicación por defecto.")
             main_window.show()
-            MessageBoxDialogs(main_window.instance).show_message_info("Correcto", "Se ha cambiado la ubicación y los archivos se han transladados correctamente.")
+        else:
+            directory_page = DirectorySelectedPage(main_window.instance, file_paths.output_path)
+            directory_page.show()
+
+            def move_all_files():
+                route_dir = directory_page.directory_path.get()
+                if route_dir != '':
+                    os.makedirs(directory_page.directory_path.get(), exist_ok=True)
+                    shutil.move(file_paths.output_path, directory_page.directory_path.get())
+                    config_file_data.output_path = os.path.join(directory_page.directory_path.get(), "output")
+                    config_file_data.saveConfigData()
+                    directory_page.delete()
+                    main_window.show()
+                    MessageBoxDialogs(main_window.instance).show_message_info(
+                        "Correcto",
+                        "Se ha cambiado la ubicación y los archivos se han trasladado correctamente."
+                    )
+                else:
+                    MessageBoxDialogs(main_window.instance).show_message_error(
+                        "Error",
+                        "No se ha seleccionado una carpeta de salida"
+                    )
+                # 🔄 Vuelve a comprobar después de mover directorio
+            directory_page.button_check.configure(command=move_all_files)
+
+    elif config_file_data.output_path == '':
+        main_window.hide()
+        MessageBoxDialogs(main_window.instance).show_message_info(
+            "Importante",
+            "Seleccione una carpeta de salida, se colocará una ruta por defecto"
+        )
+        directory_page = DirectorySelectedPage(main_window.instance, file_paths.output_path)
+        directory_page.show()
+
+        def move_all_files():
+            route_dir = directory_page.directory_path.get()
+            if route_dir != '':
+                os.makedirs(os.path.join(directory_page.directory_path.get(), "output"), exist_ok=True)
+                config_file_data.output_path = os.path.join(directory_page.directory_path.get(), "output")
+                config_file_data.saveConfigData()
+                directory_page.delete()
+                main_window.show()
+                MessageBoxDialogs(main_window.instance).show_message_info(
+                    "Correcto",
+                    "Se ha cambiado la ubicación y los archivos se han trasladado correctamente."
+                )
+            else:
+                MessageBoxDialogs(main_window.instance).show_message_error(
+                    "Error",
+                    "No se ha seleccionado una carpeta de salida"
+                )
+            
+            # 🔄 Vuelve a comprobar después de mover directorio
+
         directory_page.button_check.configure(command=move_all_files)
 
-elif config_file_data.output_path == '':
-    main_window.hide()
-    directory_page = DirectorySelectedPage(main_window.instance)
-    def move_all_files():
-        os.makedirs(os.path.dirname(directory_page.directory_path.get()), exist_ok=True)
-        shutil.move(file_paths.output_path, directory_page.directory_path.get())
-        config_file_data.output_path = os.path.join(directory_page.directory_path.get(),"output")
-        config_file_data.saveConfigData()
-        directory_page.delete()
-        main_window.show()
-        MessageBoxDialogs(main_window.instance).show_message_info("Correcto", "Se ha cambiado la ubicación y los archivos se han transladados correctamente.")
-    directory_page.button_check.configure(command=move_all_files)
         
-            
+check_conditions()
 
 
 def create_video():
@@ -145,7 +207,7 @@ def open_carpeta():
     if not respuesta.success: print(respuesta.message)
 
 def change():
-    directory_page = DirectorySelectedPage(main_window.instance)
+    directory_page = DirectorySelectedPage(main_window.instance, "")
     directory_page.instance.protocol("WM_DELETE_WINDOW", directory_page.instance.destroy)
     def move_all_files():
         os.makedirs(os.path.dirname(directory_page.directory_path.get()), exist_ok=True)

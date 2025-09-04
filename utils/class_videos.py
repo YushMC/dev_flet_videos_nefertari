@@ -36,7 +36,7 @@ class CreateFinalVideo(CreateVideos):
             self.__temp.close()
             self.__outro.close()
             self.__final_clip.close()#type: ignore
-            return {"success": True, "message": f"Video Guardado en: {self.__name}"}
+            return {"success": True, "message": f"Video Guardado en: {os.path.join(self.__output, self.__name)}"}
         except Exception as e:
             return {"success": False, "message":  f"Ourrio un error: {e}"} 
 
