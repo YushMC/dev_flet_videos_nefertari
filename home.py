@@ -3,7 +3,7 @@ from utils.class_files import InitPaths
 from pages.home import MainPageWindow
 
 class HomePage:
-    def __init__(self, root, titulo, token, paths) -> None:
+    def __init__(self, root, titulo, paths) -> None:
         self.__paths= paths
         self.__main_window = MainPageWindow(root,titulo, 500, 400, self.__paths.logo_file)
         self.__frame_for_image = FrameWindowPack(self.__main_window.instance,400, 300, False, "center")
@@ -14,9 +14,9 @@ class HomePage:
         self.__frame_for_buttons= FrameWindowGrid(self.__frame_bottom.instance, 400, 100, "center")
         self.__button_crear_video = ButtonGrid(self.__frame_for_buttons.instance, "Crear Video",0,0, 0,0,"we")
         self.__button_abrir_carpeta = ButtonGrid(self.__frame_for_buttons.instance, "Abrir Carpeta",0,1, 0,0,"we")
-        self.__frame_for_buttons.amount_columns_responsives(2)
+        self.button_cambiar_carpeta = ButtonGrid(self.__frame_for_buttons.instance, "Cambiar ubicación de salida",0,2, 0,0,"we")
+        self.__frame_for_buttons.amount_columns_responsives(3)
         self.__frame_for_buttons.amount_rows_responsives(1)
-        self.__token= token
 
     @property
     def instance(self):

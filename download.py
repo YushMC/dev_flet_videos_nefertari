@@ -10,10 +10,11 @@ import random
 
 
 class DownloadPage:
-    def __init__(self, window, trips: list, paths) -> None:
+    def __init__(self, window, trips: list, paths, output_dir) -> None:
         self.__paths = paths
+        self.output_dir= output_dir
         self._spinner = None
-        self.__create_videos_for_agency = CreateVideosForAgency(self.__paths)
+        self.__create_videos_for_agency = CreateVideosForAgency(self.__paths, self.output_dir)
         self.__download_page = DownloadPageWindow(window,"Descargar Video")
         self.__button_back = ButtonPlace(self.__download_page.instance, "Regresar", 0.1, 0.05, "center", 100, 30)#type: ignore
         self.__frame_container = FrameWindowPlace(self.__download_page.instance, 400, 200, 0.5, 0.5, "center")

@@ -29,9 +29,10 @@ class InitPaths:
         self.output_path = os.path.join(self.base_write_path, "output")
         self.temp_path = os.path.join(self.base_write_path, "temp")
         self.logs = os.path.join(self.base_write_path, "log.txt")
+        self.config_file = os.path.join(self.base_write_path, "config.txt")
 
         # Crear carpetas si no existen
-        for path in [self.input_path, self.output_path, self.temp_path]:
+        for path in [self.input_path, self.temp_path]:
             os.makedirs(path, exist_ok=True)
 
         # Rutas de archivos temporales
@@ -208,4 +209,48 @@ class ShowFiles:
         
     def showFile(self, file):
         return self.__atempts(self.__openFiles(file))
+    
+class ConfigFile:
+    def __init__(self, path: InitPaths):
+        self.__config_file_route = path.config_file
+        self.__values= {
+            "token": "",
+            "output_dir": ""
+        }
+
+    @property
+    def token(self) -> str:
+        return self.__values['token']
+    
+    @token.setter
+    def token(self, value: str):
+        self.__values['token']= value
+
+    @property
+    def output_dir(self) -> str:
+        return self.__values["output_dir"]
+
+    @output_dir.setter
+    def output_dir(self, value: str):
+        self.__values["output_dir"] = value
+
+    def loadConfigFile(self):
+        with open(self.__config_file_route, "r") as f:
+            for linea in f:
+                linea = linea.strip()
+                if not linea or "=" not in linea:
+                    continue
+                clave, valor = linea.split("=", 1)
+                clave = clave.strip()
+                valor = valor.strip().strip(";")
+                if clave in self.__values:  # evitar claves inesperadas
+                    self.__values[clave] = valor
+
+    def saveConfigFile(self):
+        if CheckDirectories().checkFilesAndDirectories(self.__config_file_route): DeleteFile(self.__config_file_route)
+        with open(self.__config_file_route, "w") as f:
+            for clave, valor in self.__values.items():
+                f.write(f"{clave}= {valor}\n")
+
+    
         

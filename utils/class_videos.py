@@ -13,11 +13,11 @@ class CreateVideos:
         pass
 
 class CreateFinalVideo(CreateVideos):
-    def __init__(self, paths, name):
+    def __init__(self, paths, name, output_dir):
         self.__intro = VideoFileClip(paths.intro_video_path)
         self.__outro = VideoFileClip(paths.outro_video_path)
         self.__temp= VideoFileClip(paths.temp_video_to_generate_path)
-        self.__output = paths.output_path
+        self.__output = output_dir
         self.__audio_temp= paths.audio_final_video_logo
         self.__name= name
         self.__final_clip = ""
@@ -69,8 +69,9 @@ class AddLogoToVideo(CreateVideos):
         self.__final_clip = CompositeVideoClip([self.__background, self.__logo_create])
     
 class CreateVideosForAgency():
-    def __init__(self, files_paths,):
+    def __init__(self, files_paths, output_dir):
         self.__paths = files_paths
+        self.__output_dir= output_dir
     
     async def createVideWithLogo(self) -> dict:
         logo = AddLogoToVideo(self.__paths)
@@ -79,7 +80,7 @@ class CreateVideosForAgency():
         return {"success": response["success"], "message": response["message"]}
 
     async def joinVideos(self, name)-> dict:
-        video = CreateFinalVideo(self.__paths, name)
+        video = CreateFinalVideo(self.__paths, name, self.__output_dir)
         response= await video.start()
         return {"success": response["success"], "message": response["message"]}
 
