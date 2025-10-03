@@ -13,20 +13,21 @@ class CreateVideos:
         pass
 
 class CreateFinalVideo(CreateVideos):
-    def __init__(self, paths, name, output_dir):
-        self.__intro = VideoFileClip(paths.intro_video_path)
-        self.__outro = VideoFileClip(paths.outro_video_path)
-        self.__temp= VideoFileClip(paths.temp_video_to_generate_path)
+    def __init__(self, paths, name, output_dir, size):
+        width, height = map(int, size.split("x"))
+        self.__intro = VideoFileClip(paths.intro_video_path).resized(width=width, height=height)
+        self.__outro = VideoFileClip(paths.outro_video_path).resized(width=width, height=height)
+        self.__temp= VideoFileClip(paths.temp_video_to_generate_path).resized(width=width, height=height)
         self.__output = output_dir
         self.__audio_temp= paths.audio_final_video_logo
         self.__name= name
         self.__final_clip = ""
 
     def __concatenate(self):
-        self.__intro = self.__intro.subclipped(0, self.__intro.duration - 0.01)
-        self.__outro = self.__outro.subclipped(0, self.__outro.duration - 0.01)
-        self.__temp = self.__temp.subclipped(0, self.__temp.duration - 0.01)
-        self.__final_clip = concatenate_videoclips([self.__intro, self.__temp, self.__outro], method="compose") # type: ignore
+        self.__intro = self.__intro
+        self.__outro = self.__outro
+        self.__temp = self.__temp
+        self.__final_clip = concatenate_videoclips([self.__intro, self.__temp, self.__outro], method="chain") # type: ignore
 
     async def start(self)-> dict:
         self.__concatenate()
@@ -79,14 +80,14 @@ class CreateVideosForAgency():
         response = await logo.start()
         return {"success": response["success"], "message": response["message"]}
 
-    async def joinVideos(self, name)-> dict:
-        video = CreateFinalVideo(self.__paths, name, self.__output_dir)
+    async def joinVideos(self, name, size)-> dict:
+        video = CreateFinalVideo(self.__paths, name, self.__output_dir, size)
         response= await video.start()
         return {"success": response["success"], "message": response["message"]}
 
-    async def createVideo(self, name) -> dict:
+    async def createVideo(self, name, size) -> dict:
         isReadyVideoWithLogo = await self.createVideWithLogo()
-        isReadyVideoFinal = await self.joinVideos(name)
+        isReadyVideoFinal = await self.joinVideos(name, size)
 
         if isReadyVideoWithLogo["success"] and isReadyVideoFinal["success"]:
             return {"success": True, "message": "Video generado correctamente", "route": f"{self.__paths.output_path}"}

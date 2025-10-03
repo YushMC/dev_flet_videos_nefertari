@@ -279,6 +279,22 @@ class ComboBoxVideoGrid(ComboBoxVideo):
         else: self._combo_box.grid(row=row, column=column, sticky=span_direction) 
 
 
+class ComboBoxSizeVideo(ComboBoxWidget):
+    def __init__(self, frame: tk.Frame, optionsList: list) -> None:
+        super().__init__(frame)
+        self.__options = optionsList
+        self._combo_box.config(values=self.__options)
+    
+    def selected_item(self) -> dict:
+        selected_name = self._combo_box.get()
+        if selected_name: return {"success": True, "size": selected_name}
+        else: return {"success": False}  
+
+class ComboBoxSizeVideoPack(ComboBoxSizeVideo):
+    def __init__(self, frame: tk.Frame, optionsList: list, position, expanded: bool) -> None:
+        super().__init__(frame, optionsList)
+        self._combo_box.pack(pady=20, side=position,expand=expanded)
+
 #TODO: Clases para crear los dialogos
 
 

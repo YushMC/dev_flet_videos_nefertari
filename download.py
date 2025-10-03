@@ -1,5 +1,5 @@
 import tkinter as tk
-from pages.base import ButtonPlace, ComboBoxVideoPack, FrameWindowPlace, LabelPack, MessageBoxDialogs
+from pages.base import ButtonPlace, ComboBoxVideoPack, FrameWindowPlace, LabelPack, MessageBoxDialogs, ButtonPack, ComboBoxSizeVideoPack
 from pages.download import DownloadPageWindow
 from pages.loading import SpinnerPage
 from utils.class_fetchs import ReequestToDownloadVideo
@@ -11,28 +11,42 @@ import os
 
 
 class DownloadPage:
-    def __init__(self, window, trips: list, paths, output_dir) -> None:
+    def __init__(self, window, trips: list,optionsList: list, paths, output_dir) -> None:
         self.__paths = paths
         self.output_dir= output_dir
         self._spinner = None
         self.__create_videos_for_agency = CreateVideosForAgency(self.__paths, self.output_dir)
         self.__download_page = DownloadPageWindow(window,"Descargar Video")
         self.__button_back = ButtonPlace(self.__download_page.instance, "Regresar", 0.1, 0.05, "center", 100, 30)#type: ignore
-        self.__frame_container = FrameWindowPlace(self.__download_page.instance, 400, 200, 0.5, 0.5, "center")
+        self.__frame_container = FrameWindowPlace(self.__download_page.instance, 400, 300, 0.5, 0.5, "center")
         self.__instruction_label = LabelPack(self.__frame_container.instance, "Selecciona un video de la lista", "top", False, 5, 5)
         self.__combo_box = ComboBoxVideoPack(self.__frame_container.instance, trips, "top", True)
         self.__combo_box.instance.pack_configure(fill="x")
-        self.__button_download = ButtonPlace(self.__frame_container.instance, "Descargar", 0.5, 0.8, "center", 100, 30)
+        self.__instruction_label = LabelPack(self.__frame_container.instance, "Selecciona el tamaño del video final", "top", False, 5, 5)
+        self.__combo_box_size = ComboBoxSizeVideoPack(self.__frame_container.instance, optionsList, "top", True)
+        self.__combo_box_size.instance.pack_configure(fill="x")
+        self.__button_download = ButtonPack(self.__frame_container.instance, "Descargar", "top", False, 0 ,1, 0,0)
         self.__button_download.instance.configure(command=self.get_url)
         self.__download_page.instance.protocol("WM_DELETE_WINDOW", window.destroy)
+        self.size_selected = ""
 
     def get_url(self):
         """Ejecuta todo el proceso en orden dentro de un hilo para no bloquear Tkinter"""
         self.hide()
+
+        responseSize = self.__combo_box_size.selected_item()
+        if not responseSize["success"]:
+            MessageBoxDialogs(self.__download_page.instance).show_message_error("Error", "No se seleccionó ningún tamaño de video")
+            self.show()
+            return
+
         response = self.__combo_box.selected_item()
         if not response["success"]:
             MessageBoxDialogs(self.__download_page.instance).show_message_error("Error", "No se seleccionó ningún video")
+            self.show()
             return
+        
+        self.size_selected = responseSize["size"]
 
         # Ejecutar la corrutina en el loop principal de asyncio, no en un nuevo hilo
         threading.Thread(target=lambda: asyncio.run(self.__process_video(response["url_video"], response["name"])),daemon=True).start()
@@ -83,7 +97,7 @@ class DownloadPage:
     async def __create_video_final(self, name):
         texto_base4 = ''.join(str(random.randint(0, 9)) for _ in range(5))
         str_name = f'video_{name}_{texto_base4}.mp4'
-        response = await self.__create_videos_for_agency.joinVideos(str_name)
+        response = await self.__create_videos_for_agency.joinVideos(str_name, self.size_selected)
         return {"success": response["success"], "message": response["message"], "ubication": f"{os.path.join(self.output_dir, str_name)}"}
 
     @property 

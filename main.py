@@ -34,6 +34,11 @@ move_files= MoveFIles()
 config_file_data= ConfigFileValues(file_paths, check_files)
 token_user = ""
 trips= []
+optionsList=[
+    "854x480",
+    "1280x720",
+    "1920x1080"
+]
 # Función de utilidad
 def get_root():
     return tk.Tk()
@@ -195,7 +200,7 @@ check_conditions()
 
 def create_video():
     main_window.hide()
-    download_page = DownloadPage(main_window.instance, trips, file_paths, config_file_data.output_path)
+    download_page = DownloadPage(main_window.instance, trips,optionsList, file_paths, config_file_data.output_path)
     def back_to_main():
         download_page.hide()
         main_window.show()
